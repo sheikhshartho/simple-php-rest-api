@@ -22,6 +22,19 @@ class User
         return $data;
     }
 
+    public function getById($id)
+    {
+        $stmt = $this->conn->prepare("SELECT * FROM $this->table WHERE id = ?");
+        $stmt->bind_param("i", $id); 
+        $result = $stmt->get_result();
+        if ($row = $result->fetch_assoc()) {
+            return $row;
+        } else {
+            return null;
+        }
+    }
+
+
     public function postData($name, $email)
     {
         $sql = "INSERT INTO `users` ( `name`, `email`) VALUES ( '$name', '$email');";

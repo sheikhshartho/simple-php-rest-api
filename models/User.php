@@ -13,6 +13,21 @@ class UserController
     {
         switch ($method) {
             case "GET":
+                if (isset($_GET['id'])) {
+                    $user = $this->user->getById($_GET['id']);
+                    if ($user) {
+                        echo json_encode([
+                            'status' => true,
+                            "data" => $user
+                        ]);
+                    } else {
+                        echo json_encode([
+                            'status' => false,
+                            "message" => "User not found"
+                        ]);
+                    };
+                    return;
+                }
                 echo json_encode([
                     "status" => true,
                     "data" => $this->user->getAll()
