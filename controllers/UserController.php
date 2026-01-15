@@ -26,6 +26,7 @@ class User
     {
         $stmt = $this->conn->prepare("SELECT * FROM $this->table WHERE id = ?");
         $stmt->bind_param("i", $id); 
+        $stmt->execute();
         $result = $stmt->get_result();
         if ($row = $result->fetch_assoc()) {
             return $row;
