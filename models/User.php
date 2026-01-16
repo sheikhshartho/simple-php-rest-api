@@ -1,68 +1,56 @@
 <?php
-
-class UserController
+class User
 {
-    private $user;
+    private $conn;
+    private $table = "users";
 
     public function __construct($db_name)
     {
-        $this->user = new User($db_name);
+        $this->conn = $db_name;
     }
 
-    public function handleRequst($method)
+    public function getAll()
     {
-        switch ($method) {
-            case "GET":
-                if (isset($_GET['id'])) {
-                    $user = $this->user->getById($_GET['id']);
-                    if ($user) {
-                        echo json_encode([
-                            'status' => true,
-                            "data" => $user
-                        ]);
-                    } else {
-                        echo json_encode([
-                            'status' => false,
-                            "message" => "User not found"
-                        ]);
-                    };
-                    return;
-                }
-                echo json_encode([
-                    "status" => true,
-                    "data" => $this->user->getAll()
-                ]);
-                break;
+        $sql = "SELECT * FROM `$this->table`";
+        $result = $this->conn->query($sql);
 
-            case "POST":
-                $data = json_decode(file_get_contents('php://input'), true);
-                $this->user->postData($data['name'], $data['email']);
-
-                echo json_encode([
-                    'status' => true,
-                    "message" => "User created successfully"
-                ]);
-                break;
-
-            case "PUT":
-                $data = json_decode(file_get_contents("php://input"), true);
-                $this->user->updateData($data['id'], $data['name'], $data["email"]);
-
-                echo json_encode([
-                    "status" => true,
-                    "message" => "User updated successfully"
-                ]);
-                break;
-
-            case "DELETE":
-                $data = json_decode(file_get_contents('php://input'), true);
-                $this->user->deleteData($data['id']);
-
-                echo json_encode([
-                    "status" => true,
-                    "message" => 'User deleted successfully'
-                ]);
-                break;
+        $data = [];
+        while ($row = $result->fetch_assoc()) {
+            $data[] = $row;
         }
+
+        return $data;
+    }
+
+    public function getById($id)
+    {
+        $stmt = $this->conn->prepare("SELECT * FROM $this->table WHERE id = ?");
+        $stmt->bind_param("i", $id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        if ($row = $result->fetch_assoc()) {
+            return $row;
+        } else {
+            return null;
+        }
+    }
+
+
+    public function postData($name, $email)
+    {
+        $sql = "INSERT INTO `users` ( `name`, `email`) VALUES ( '$name', '$email');";
+        return $this->conn->query($sql);
+    }
+
+    public function updateData($id, $name, $email)
+    {
+        $sql = "UPDATE `$this->table` SET `name` = '$name', `email` = '$email' WHERE `$this->table`.`id` = $id;";
+        return $this->conn->query($sql);
+    }
+
+    public function deleteData($id)
+    {
+        $sql = "DELETE FROM `$this->table` WHERE `$this->table`.`id` = $id";
+        return $this->conn->query($sql);
     }
 }
